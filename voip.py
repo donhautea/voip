@@ -45,7 +45,7 @@ def display_directory_csv_with_filters(directory_df, show_all_data):
 # Main function to create the Streamlit app
 def main():
     # Sidebar with filter options for the directory.csv
-    st.sidebar.title("Directory CSV Filter Tool")
+    st.sidebar.title("SSS VOIP Directory Search Tool")
     
     # Automatically load directory.csv
     directory_df = load_directory_csv()
