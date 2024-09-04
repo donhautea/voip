@@ -4,52 +4,59 @@ import pandas as pd
 # Set Streamlit page configuration
 st.set_page_config(layout="wide")  # Set layout to wide
 
-# Load the CSV file with caching
-@st.cache_data
-def load_data(file_path):
-    # Load data and drop the first column (index 0)
-    df = pd.read_csv(file_path)
-    if df.columns[0] == 'Unnamed: 0':  # Sometimes index columns are named 'Unnamed: 0'
-        df = df.drop(df.columns[0], axis=1)
+# Automatically load directory.csv without a button click
+def load_directory_csv():
+    csv_path = "directory.csv"  # Replace with the actual path to directory.csv
+    directory_df = pd.read_csv(csv_path)
+
+    # Drop the first column (if it's an unnamed index column) and reset index
+    if directory_df.columns[0] == 'Unnamed: 0':
+        directory_df = directory_df.drop(directory_df.columns[0], axis=1)
     else:
-        df = df.drop(df.columns[0], axis=1)
-    return df
+        directory_df = directory_df.drop(directory_df.columns[0], axis=1)
+
+    directory_df = directory_df.reset_index(drop=True)
+    return directory_df
+
+# Function to display directory.csv and provide filter functionality
+def display_directory_csv_with_filters(directory_df, show_all_data):
+    # Display the loaded directory.csv if the checkbox is checked
+    if show_all_data:
+        st.write("### Loaded directory.csv (All Data)")
+        st.dataframe(directory_df)
+
+    # Allow filtering based on the directory.csv content
+    column_options = directory_df.columns.tolist()
+    
+    # Check if "Display Name" exists in the column options and set it as default
+    default_column = "Display Name" if "Display Name" in column_options else column_options[0]
+    
+    filter_column = st.sidebar.selectbox("Select a column to filter", column_options, index=column_options.index(default_column), key="directory_column")
+    filter_values = st.sidebar.multiselect(f"Select values to filter by in '{filter_column}'", directory_df[filter_column].unique(), key="directory_filter_values")
+
+    # Display search button for filtering
+    if st.sidebar.button("Search", key="directory_search_button"):
+        if filter_values:
+            filtered_directory_df = directory_df[directory_df[filter_column].isin(filter_values)]
+            st.write("### Search Result/(s)")
+            st.dataframe(filtered_directory_df)
+        else:
+            st.warning("Please select at least one value to filter.")
 
 # Main function to create the Streamlit app
 def main():
-    # Sidebar with upload and filter options
-    st.sidebar.title("CSV Filter Tool")
+    # Sidebar with filter options for the directory.csv
+    st.sidebar.title("SSS VOIP Directory Search Tool")
     
-    # Upload CSV file
-    uploaded_file = st.sidebar.file_uploader("Choose a CSV file", type="csv")
-    
-    if uploaded_file is not None:
-        # Load data from CSV and drop the first column
-        df = load_data(uploaded_file)
+    # Automatically load directory.csv
+    directory_df = load_directory_csv()
 
-        # Display the entire dataframe by default in the main window
-        st.write("### All Data")
-        st.write(df)
+    # Checkbox to show or hide all data from directory.csv
+    show_all_data = st.sidebar.checkbox("Show all data", value=False)
 
-        # Default column to filter set to 'Display Name'
-        column_options = df.columns.tolist()
-        default_column = "Display Name" if "Display Name" in column_options else column_options[0]
-        column_to_filter = st.sidebar.selectbox("Select a column to filter", column_options, index=column_options.index(default_column))
-
-        # Allow multiple search values
-        search_values = st.sidebar.multiselect(f"Search value(s) in '{column_to_filter}'", df[column_to_filter].unique())
-
-        # If search values are selected, filter the dataframe
-        if search_values:
-            filtered_df = df[df[column_to_filter].isin(search_values)]
-            st.write("### Filtered Results")
-            st.write(filtered_df)
-
-            # Display message about the number of matching rows
-            if not filtered_df.empty:
-                st.success(f"Found {len(filtered_df)} matching rows.")
-            else:
-                st.warning("No matching rows found.")
+    # Display the directory.csv with filter options, controlled by the checkbox
+    st.sidebar.markdown("### Search Tool")
+    display_directory_csv_with_filters(directory_df, show_all_data)
 
 if __name__ == "__main__":
     main()
