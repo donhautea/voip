@@ -22,7 +22,7 @@ def load_directory_csv():
 def display_directory_csv_with_filters(directory_df, show_all_data):
     # Display the loaded directory.csv if the checkbox is checked
     if show_all_data:
-        st.write("### Loaded directory.csv (All Data)")
+        st.write("### VOIP Dataset (All Data)")
         st.dataframe(directory_df)
 
     # Allow filtering based on the directory.csv content
@@ -31,31 +31,30 @@ def display_directory_csv_with_filters(directory_df, show_all_data):
     # Check if "Display Name" exists in the column options and set it as default
     default_column = "Display Name" if "Display Name" in column_options else column_options[0]
     
-    filter_column = st.sidebar.selectbox("Select a column to filter", column_options, index=column_options.index(default_column), key="directory_column")
+    filter_column = st.sidebar.selectbox("Select a column to filter in ", column_options, index=column_options.index(default_column), key="directory_column")
     filter_values = st.sidebar.multiselect(f"Select values to filter by in '{filter_column}'", directory_df[filter_column].unique(), key="directory_filter_values")
 
-    # Display search button for filtering
-    if st.sidebar.button("Search", key="directory_search_button"):
-        if filter_values:
-            filtered_directory_df = directory_df[directory_df[filter_column].isin(filter_values)]
-            st.write("### Search Result/(s)")
-            st.dataframe(filtered_directory_df)
-        else:
-            st.warning("Please select at least one value to filter.")
+    # Automatically display filtered results
+    if filter_values:
+        filtered_directory_df = directory_df[directory_df[filter_column].isin(filter_values)]
+        st.write("### VOIP Filtered Results")
+        st.dataframe(filtered_directory_df)
+    else:
+        st.warning("Please select at least one value to filter.")
 
 # Main function to create the Streamlit app
 def main():
     # Sidebar with filter options for the directory.csv
-    st.sidebar.title("SSS VOIP Directory Search Tool")
+    st.sidebar.title("Directory CSV Filter Tool")
     
     # Automatically load directory.csv
     directory_df = load_directory_csv()
 
     # Checkbox to show or hide all data from directory.csv
-    show_all_data = st.sidebar.checkbox("Show all data", value=False)
+    show_all_data = st.sidebar.checkbox("Show All VOIP Data", value=False)
 
     # Display the directory.csv with filter options, controlled by the checkbox
-    st.sidebar.markdown("### Search Tool")
+    st.sidebar.markdown("### Directory Data")
     display_directory_csv_with_filters(directory_df, show_all_data)
 
 if __name__ == "__main__":
